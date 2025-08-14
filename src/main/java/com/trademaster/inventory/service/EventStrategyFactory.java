@@ -1,7 +1,6 @@
 package com.trademaster.inventory.service;
 
 import com.trademaster.inventory.enums.EventType;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class EventStrategyFactory {
 
