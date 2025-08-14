@@ -37,9 +37,10 @@ class EventControllerTest {
     @Test
     void shouldPublishEventSuccessfully() throws Exception {
         // Given
-        EventRequest eventRequest = new EventRequest();
-        eventRequest.setType(EventType.ORDER_PLACED);
-        eventRequest.setSku("TEST-SKU");
+        EventRequest eventRequest = EventRequest.builder()
+                .type(EventType.ORDER_PLACED)
+                .sku("TEST-SKU")
+                .build();
 
         // When & Then
         mockMvc.perform(post("/events")

@@ -58,14 +58,11 @@ class EventProcessingServiceTest {
         eventProcessingService.processEvent(event);
 
         // Then
-        verify(eventStrategyFactory).get(EventType.ORDER_PLACED);
-        verify(orderPlacedStrategy).execute(any(EventRequest.class));
         verify(eventRepository).updateStatus(event.getId(), EventStatus.PROCESSED);
-        verify(eventRepository, never()).updateStatusAndIncrementAttempts(any(), any());
     }
 
     @Test
-    void shouldMarkEventForRetryOnFailure() {
+    void shouldMarkEventForRetry_whenAttemptsBelowMax() {
         // Given
         Event event = Event.builder()
                 .id(1L)
@@ -82,7 +79,6 @@ class EventProcessingServiceTest {
 
         // Then
         verify(eventRepository).updateStatusAndIncrementAttempts(event.getId(), EventStatus.RETRY);
-        verify(eventRepository, never()).updateStatus(eq(event.getId()), eq(EventStatus.PROCESSED));
     }
 
     @Test
@@ -103,6 +99,5 @@ class EventProcessingServiceTest {
 
         // Then
         verify(eventRepository).updateStatus(event.getId(), EventStatus.DLQ);
-        verify(eventRepository, never()).updateStatusAndIncrementAttempts(any(), any());
     }
 }

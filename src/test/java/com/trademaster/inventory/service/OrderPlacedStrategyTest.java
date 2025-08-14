@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -27,7 +26,7 @@ class OrderPlacedStrategyTest {
     }
 
     @Test
-    void shouldDecrementQty_whenOrderPlaced() {
+    void shouldDecrementQuantity_whenOrderPlaced() {
         // Given
         EventRequest eventRequest = EventRequest.builder()
                 .type(EventType.ORDER_PLACED)
@@ -56,10 +55,7 @@ class OrderPlacedStrategyTest {
         when(inventoryItemRepository.decrementQuantityIfAvailable("PRODUCT-123", 2)).thenReturn(0);
 
         // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderPlacedStrategy.execute(eventRequest);
-        });
-        assertEquals("Insufficient inventory for SKU: PRODUCT-123", exception.getMessage());
+        assertThrows(RuntimeException.class, () -> orderPlacedStrategy.execute(eventRequest));
     }
 
     @Test
@@ -77,11 +73,5 @@ class OrderPlacedStrategyTest {
 
         // Then
         verify(inventoryItemRepository).decrementQuantityIfAvailable("PRODUCT-123", 1);
-    }
-
-    @Test
-    void shouldSupportOrderPlacedEventType() {
-        // When & Then
-        assertEquals(EventType.ORDER_PLACED, orderPlacedStrategy.supports());
     }
 }

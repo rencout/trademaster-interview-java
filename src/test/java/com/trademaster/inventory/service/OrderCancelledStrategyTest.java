@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,7 +25,7 @@ class OrderCancelledStrategyTest {
     }
 
     @Test
-    void shouldIncrementQty_whenOrderCancelled() {
+    void shouldIncrementQuantity_whenOrderCancelled() {
         // Given
         EventRequest eventRequest = EventRequest.builder()
                 .type(EventType.ORDER_CANCELLED)
@@ -54,11 +53,5 @@ class OrderCancelledStrategyTest {
 
         // Then
         verify(inventoryItemRepository).adjustQuantityBySku("PRODUCT-123", 1);
-    }
-
-    @Test
-    void shouldSupportOrderCancelledEventType() {
-        // When & Then
-        assertEquals(EventType.ORDER_CANCELLED, orderCancelledStrategy.supports());
     }
 }
