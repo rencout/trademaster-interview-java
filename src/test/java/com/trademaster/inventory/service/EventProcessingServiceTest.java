@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -30,8 +32,13 @@ class EventProcessingServiceTest {
     private EventProcessingService eventProcessingService;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         eventProcessingService = new EventProcessingService(eventStrategyFactory, eventRepository);
+        
+        // Set maxRetries field using reflection since @Value doesn't work in unit tests
+        Field maxRetriesField = EventProcessingService.class.getDeclaredField("maxRetries");
+        maxRetriesField.setAccessible(true);
+        maxRetriesField.set(eventProcessingService, 3);
     }
 
     @Test
@@ -76,5 +83,26 @@ class EventProcessingServiceTest {
         // Then
         verify(eventRepository).updateStatusAndIncrementAttempts(event.getId(), EventStatus.RETRY);
         verify(eventRepository, never()).updateStatus(eq(event.getId()), eq(EventStatus.PROCESSED));
+    }
+
+    @Test
+    void shouldRouteToDlq_whenAttemptsAtOrAboveMax() {
+        // Given
+        Event event = Event.builder()
+                .id(1L)
+                .type(EventType.ORDER_PLACED)
+                .sku("TEST-SKU")
+                .attempts(3)
+                .build();
+
+        when(eventStrategyFactory.get(EventType.ORDER_PLACED)).thenReturn(orderPlacedStrategy);
+        doThrow(new RuntimeException("Processing failed")).when(orderPlacedStrategy).execute(any(EventRequest.class));
+
+        // When
+        eventProcessingService.processEvent(event);
+
+        // Then
+        verify(eventRepository).updateStatus(event.getId(), EventStatus.DLQ);
+        verify(eventRepository, never()).updateStatusAndIncrementAttempts(any(), any());
     }
 }
